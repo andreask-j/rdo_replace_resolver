@@ -148,11 +148,11 @@ ReplaceResolver::SetDefaultSearchPath(
 void
 ReplaceResolver::ConfigureResolverForAsset(const std::string& path)
 {
-    _defaultContext = CreateDefaultContextForAsset(path);
+    _defaultContext = _CreateDefaultContextForAsset(path);
 }
 
 bool
-ReplaceResolver::IsRelativePath(const std::string& path)
+ReplaceResolver::_IsRelativePath(const std::string& path)
 {
     return (!path.empty() && TfIsRelativePath(path));
 }
@@ -164,12 +164,12 @@ ReplaceResolver::IsRepositoryPath(const std::string& path)
 }
 
 std::string
-ReplaceResolver::AnchorRelativePath(
+ReplaceResolver::_AnchorRelativePath(
     const std::string& anchorPath, 
     const std::string& path)
 {
     if (TfIsRelativePath(anchorPath) ||
-        !IsRelativePath(path)) {
+        !_IsRelativePath(path)) {
         return path;
     }
 
@@ -186,9 +186,9 @@ ReplaceResolver::AnchorRelativePath(
 }
 
 bool
-ReplaceResolver::IsSearchPath(const std::string& path)
+ReplaceResolver::_IsSearchPath(const std::string& path)
 {
-    return IsRelativePath(path) && !_IsFileRelative(path);
+    return _IsRelativePath(path) && !_IsFileRelative(path);
 }
 
 std::string
@@ -255,7 +255,7 @@ ReplaceResolver::_ResolveNoCache(const std::string& path)
         return path;
     }
 
-    if (IsRelativePath(path)) {
+    if (_IsRelativePath(path)) {
         // First try to resolve relative paths against the current
         // working directory.
         std::string resolvedPath = _Resolve(ArchGetCwd(), path);
@@ -265,7 +265,7 @@ ReplaceResolver::_ResolveNoCache(const std::string& path)
 
         // If that fails and the path is a search path, try to resolve
         // against each directory in the specified search paths.
-        if (IsSearchPath(path)) {
+        if (_IsSearchPath(path)) {
             auto currentContext = _GetCurrentContext();
             if(currentContext) {
                 TF_DEBUG(REPLACERESOLVER_CURRENTCONTEXT).Msg(
@@ -296,7 +296,7 @@ ReplaceResolver::_ResolveNoCache(const std::string& path)
 }
 
 std::string
-ReplaceResolver::Resolve(const std::string& path)
+ReplaceResolver::_Resolve(const std::string& path)
 {
     return ResolveWithAssetInfo(path, /* assetInfo = */ nullptr);
 }
@@ -353,7 +353,7 @@ ReplaceResolver::UpdateAssetInfo(
 }
 
 VtValue
-ReplaceResolver::GetModificationTimestamp(
+ReplaceResolver::_GetModificationTimestamp(
     const std::string& path,
     const std::string& resolvedPath)
 {
@@ -408,13 +408,13 @@ ReplaceResolver::CanCreateNewLayerWithIdentifier(
 }
 
 ArResolverContext 
-ReplaceResolver::CreateDefaultContext()
+ReplaceResolver::_CreateDefaultContext()
 {
     return _defaultContext;
 }
 
 ArResolverContext 
-ReplaceResolver::CreateDefaultContextForAsset(
+ReplaceResolver::_CreateDefaultContextForAsset(
     const std::string& filePath)
 {
     if (filePath.empty()){
@@ -442,7 +442,7 @@ ReplaceResolver::RefreshContext(const ArResolverContext& context)
 }
 
 ArResolverContext
-ReplaceResolver::GetCurrentContext()
+ReplaceResolver::_GetCurrentContext()
 {
     const ReplaceResolverContext* ctx = _GetCurrentContext();
     return ctx ? ArResolverContext(*ctx) : ArResolverContext();
